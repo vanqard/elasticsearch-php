@@ -27,8 +27,14 @@ interface ConnectionInterface
      * @param \Psr\Log\LoggerInterface $log          Logger object
      * @param \Psr\Log\LoggerInterface $trace        Logger object
      */
-    public function __construct($handler, $hostDetails, $connectionParams,
-                                SerializerInterface $serializer, LoggerInterface $log, LoggerInterface $trace);
+    public function __construct(
+        $handler,
+        $hostDetails,
+        $connectionParams,
+        SerializerInterface $serializer,
+        LoggerInterface $log,
+        LoggerInterface $trace
+    );
 
     /**
      * Get the transport schema for this connection
@@ -95,5 +101,12 @@ interface ConnectionInterface
      * @param \Elasticsearch\Transport $transport
      * @return mixed
      */
-    public function performRequest($method, $uri, $params = null, $body = null, $options = [], Transport $transport);
+    public function performRequest(
+        $method,
+        $uri,
+        $params = null,
+        $body = null,
+        $options = [],
+        ?Transport $transport = null
+    );
 }

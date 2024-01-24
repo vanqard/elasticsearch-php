@@ -1,0 +1,196 @@
+diff --git a/composer.json b/composer.json
+index ae6f450b..ca30e837 100644
+--- a/composer.json
++++ b/composer.json
+@@ -10,7 +10,7 @@
+     }
+   ],
+   "require": {
+-    "php": "^5.6|^7.0",
++    "php": "^8.0",
+     "psr/log": "~1.0",
+     "guzzlehttp/ringphp" : "~1.0"
+   },
+diff --git a/src/Elasticsearch/ClientBuilder.php b/src/Elasticsearch/ClientBuilder.php
+index 285e4d48..1ec25571 100644
+--- a/src/Elasticsearch/ClientBuilder.php
++++ b/src/Elasticsearch/ClientBuilder.php
+@@ -112,7 +112,7 @@ class ClientBuilder
+ 
+     /**
+      * Can supply second parm to Client::__construct() when invoking manually or with dependency injection
+-     * @return this->endpoint
++     * @return Callable endpoint
+      *
+      */
+     public function getEndpoint()
+diff --git a/src/Elasticsearch/Connections/ConnectionInterface.php b/src/Elasticsearch/Connections/ConnectionInterface.php
+index 44495dbd..b2549d61 100644
+--- a/src/Elasticsearch/Connections/ConnectionInterface.php
++++ b/src/Elasticsearch/Connections/ConnectionInterface.php
+@@ -27,8 +27,14 @@ interface ConnectionInterface
+      * @param \Psr\Log\LoggerInterface $log          Logger object
+      * @param \Psr\Log\LoggerInterface $trace        Logger object
+      */
+-    public function __construct($handler, $hostDetails, $connectionParams,
+-                                SerializerInterface $serializer, LoggerInterface $log, LoggerInterface $trace);
++    public function __construct(
++        $handler,
++        $hostDetails,
++        $connectionParams,
++        SerializerInterface $serializer,
++        LoggerInterface $log,
++        LoggerInterface $trace
++    );
+ 
+     /**
+      * Get the transport schema for this connection
+@@ -95,5 +101,12 @@ interface ConnectionInterface
+      * @param \Elasticsearch\Transport $transport
+      * @return mixed
+      */
+-    public function performRequest($method, $uri, $params = null, $body = null, $options = [], Transport $transport);
++    public function performRequest(
++        $method,
++        $uri,
++        $params = null,
++        $body = null,
++        $options = [],
++        ?Transport $transport = null
++    );
+ }
+diff --git a/src/Elasticsearch/Helper/Iterators/SearchHitIterator.php b/src/Elasticsearch/Helper/Iterators/SearchHitIterator.php
+index 38695c33..afd10f65 100644
+--- a/src/Elasticsearch/Helper/Iterators/SearchHitIterator.php
++++ b/src/Elasticsearch/Helper/Iterators/SearchHitIterator.php
+@@ -58,7 +58,7 @@ class SearchHitIterator implements Iterator, \Countable
+      * @return void
+      * @see    Iterator::rewind()
+      */
+-    public function rewind()
++    public function rewind(): void
+     {
+         $this->current_key = 0;
+         $this->search_responses->rewind();
+@@ -85,7 +85,7 @@ class SearchHitIterator implements Iterator, \Countable
+      * @return void
+      * @see    Iterator::next()
+      */
+-    public function next()
++    public function next(): void
+     {
+         $this->current_key++;
+         $this->current_hit_index++;
+@@ -104,7 +104,7 @@ class SearchHitIterator implements Iterator, \Countable
+      * @return bool
+      * @see    Iterator::valid()
+      */
+-    public function valid()
++    public function valid(): bool
+     {
+         return is_array($this->current_hit_data);
+     }
+@@ -115,7 +115,7 @@ class SearchHitIterator implements Iterator, \Countable
+      * @return array
+      * @see    Iterator::current()
+      */
+-    public function current()
++    public function current(): mixed
+     {
+         return $this->current_hit_data;
+     }
+@@ -126,7 +126,7 @@ class SearchHitIterator implements Iterator, \Countable
+      * @return int
+      * @see    Iterator::key()
+      */
+-    public function key()
++    public function key(): mixed
+     {
+         return $this->current_hit_index;
+     }
+@@ -150,7 +150,7 @@ class SearchHitIterator implements Iterator, \Countable
+     /**
+      * {@inheritDoc}
+      */
+-    public function count()
++    public function count(): int
+     {
+         if ($this->count === null) {
+             $this->rewind();
+diff --git a/src/Elasticsearch/Helper/Iterators/SearchResponseIterator.php b/src/Elasticsearch/Helper/Iterators/SearchResponseIterator.php
+index f8644229..e209e941 100644
+--- a/src/Elasticsearch/Helper/Iterators/SearchResponseIterator.php
++++ b/src/Elasticsearch/Helper/Iterators/SearchResponseIterator.php
+@@ -52,7 +52,7 @@ class SearchResponseIterator implements Iterator
+      * Constructor
+      *
+      * @param Client $client
+-     * @param array  $params  Associative array of parameters
++     * @param array  $search_params  Associative array of parameters
+      * @see   Client::search()
+      */
+     public function __construct(Client $client, array $search_params)
+@@ -112,7 +112,7 @@ class SearchResponseIterator implements Iterator
+      * @return void
+      * @see    Iterator::rewind()
+      */
+-    public function rewind()
++    public function rewind(): void
+     {
+         $this->clearScroll();
+         $this->current_key = 0;
+@@ -126,7 +126,7 @@ class SearchResponseIterator implements Iterator
+      * @return void
+      * @see    Iterator::next()
+      */
+-    public function next()
++    public function next(): void
+     {
+         if ($this->current_key !== 0) {
+             $this->current_scrolled_response = $this->client->scroll(
+@@ -146,7 +146,7 @@ class SearchResponseIterator implements Iterator
+      * @return bool
+      * @see    Iterator::valid()
+      */
+-    public function valid()
++    public function valid(): bool
+     {
+         return isset($this->current_scrolled_response['hits']['hits'][0]);
+     }
+@@ -157,7 +157,7 @@ class SearchResponseIterator implements Iterator
+      * @return array
+      * @see    Iterator::current()
+      */
+-    public function current()
++    public function current(): mixed
+     {
+         return $this->current_scrolled_response;
+     }
+@@ -168,7 +168,7 @@ class SearchResponseIterator implements Iterator
+      * @return int
+      * @see    Iterator::key()
+      */
+-    public function key()
++    public function key(): mixed
+     {
+         return $this->current_key;
+     }
+diff --git a/src/Elasticsearch/Transport.php b/src/Elasticsearch/Transport.php
+index 2354a80f..c6bb5167 100644
+--- a/src/Elasticsearch/Transport.php
++++ b/src/Elasticsearch/Transport.php
+@@ -48,8 +48,12 @@ class Transport
+      * @param ConnectionPool\AbstractConnectionPool $connectionPool
+      * @param \Psr\Log\LoggerInterface $log    Monolog logger object
+      */
+-    public function __construct($retries, $sniffOnStart = false, AbstractConnectionPool $connectionPool, LoggerInterface $log)
+-    {
++    public function __construct(
++        $retries,
++        bool $sniffOnStart,
++        AbstractConnectionPool $connectionPool,
++        LoggerInterface $log
++    ) {
+         $this->log            = $log;
+         $this->connectionPool = $connectionPool;
+         $this->retries        = $retries;
