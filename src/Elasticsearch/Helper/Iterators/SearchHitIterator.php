@@ -115,7 +115,8 @@ class SearchHitIterator implements Iterator, \Countable
      * @return array
      * @see    Iterator::current()
      */
-    public function current(): mixed
+    #[\ReturnTypeWillChange]
+    public function current()
     {
         return $this->current_hit_data;
     }
@@ -126,7 +127,8 @@ class SearchHitIterator implements Iterator, \Countable
      * @return int
      * @see    Iterator::key()
      */
-    public function key(): mixed
+    #[\ReturnTypeWillChange]
+    public function key()
     {
         return $this->current_hit_index;
     }

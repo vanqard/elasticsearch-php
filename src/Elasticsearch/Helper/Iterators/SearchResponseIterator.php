@@ -157,7 +157,8 @@ class SearchResponseIterator implements Iterator
      * @return array
      * @see    Iterator::current()
      */
-    public function current(): mixed
+    #[\ReturnTypeWillChange]
+    public function current()
     {
         return $this->current_scrolled_response;
     }
@@ -168,7 +169,8 @@ class SearchResponseIterator implements Iterator
      * @return int
      * @see    Iterator::key()
      */
-    public function key(): mixed
+    #[\ReturnTypeWillChange]
+    public function key()
     {
         return $this->current_key;
     }
