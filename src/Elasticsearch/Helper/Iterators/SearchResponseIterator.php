@@ -52,7 +52,7 @@ class SearchResponseIterator implements Iterator
      * Constructor
      *
      * @param Client $client
-     * @param array  $params  Associative array of parameters
+     * @param array  $search_params  Associative array of parameters
      * @see   Client::search()
      */
     public function __construct(Client $client, array $search_params)
@@ -112,7 +112,7 @@ class SearchResponseIterator implements Iterator
      * @return void
      * @see    Iterator::rewind()
      */
-    public function rewind()
+    public function rewind(): void
     {
         $this->clearScroll();
         $this->current_key = 0;
@@ -126,7 +126,7 @@ class SearchResponseIterator implements Iterator
      * @return void
      * @see    Iterator::next()
      */
-    public function next()
+    public function next(): void
     {
         if ($this->current_key !== 0) {
             $this->current_scrolled_response = $this->client->scroll(
@@ -146,7 +146,7 @@ class SearchResponseIterator implements Iterator
      * @return bool
      * @see    Iterator::valid()
      */
-    public function valid()
+    public function valid(): bool
     {
         return isset($this->current_scrolled_response['hits']['hits'][0]);
     }
@@ -157,6 +157,7 @@ class SearchResponseIterator implements Iterator
      * @return array
      * @see    Iterator::current()
      */
+    #[\ReturnTypeWillChange]
     public function current()
     {
         return $this->current_scrolled_response;
@@ -168,6 +169,7 @@ class SearchResponseIterator implements Iterator
      * @return int
      * @see    Iterator::key()
      */
+    #[\ReturnTypeWillChange]
     public function key()
     {
         return $this->current_key;

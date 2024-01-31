@@ -112,7 +112,7 @@ class ClientBuilder
 
     /**
      * Can supply second parm to Client::__construct() when invoking manually or with dependency injection
-     * @return this->endpoint
+     * @return Callable endpoint
      *
      */
     public function getEndpoint()
